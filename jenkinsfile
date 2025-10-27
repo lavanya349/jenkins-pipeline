@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Use the 'git' step to clone your repository
-                // git url: 'https://github.com/your-org/your-repo.git', branch: 'main'
+                // git url: 'https://github.com/lavanya349/jenkins-pipeline', branch: 'main'
                 sh 'echo "Step 1: Code Checked Out"' 
             }
         }
