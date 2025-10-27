@@ -1,61 +1,47 @@
-// Jenkinsfile (Declarative Pipeline)
-
 pipeline {
-    // Defines where the pipeline will run. 'any' means any available agent.
     agent any
-
-    // Environment variables for the pipeline
-    environment {
-        // Replace with your Docker Hub Username and Image Name
-        DOCKER_IMAGE_NAME = "your_dockerhub_user/my-app" 
-        // Credential ID from Step 2.3
-        DOCKERHUB_CREDENTIALS = 'docker-hub-cred' 
-    }
-
+    
     stages {
         stage('Checkout Code') {
             steps {
-                // Clones the source code from the configured repository
-                checkout scm 
+                // Use the 'git' step to clone your repository
+                // git url: 'https://github.com/your-org/your-repo.git', branch: 'main'
+                sh 'echo "Step 1: Code Checked Out"' 
             }
         }
-
-        stage('Build Docker Image') {
+        
+        stage('Build Artifact') {
             steps {
-                script {
-                    // Builds the image using the Dockerfile in the current directory
-                    // Tags the image with the current build number
-                    sh "docker build -t ${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER} ."
-                    sh "docker tag ${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER} ${DOCKER_IMAGE_NAME}:latest"
-                }
+                // Use 'sh' to run the build command for your language (e.g., Java/Maven)
+                // sh 'mvn clean package'
+                sh 'echo "Step 2: Artifact Built"'
             }
         }
-
-        stage('Run Unit Tests (Example)') {
-            // This stage is a placeholder. You would typically run tests here.
+        
+        stage('Run Tests') {
             steps {
-                sh 'echo "Running basic tests..."'
-                // sh 'docker run --rm ${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER} npm test'
+                // sh 'mvn test'
+                // junit 'target/surefire-reports/*.xml' // To publish results
+                sh 'echo "Step 3: Tests Passed"'
             }
         }
-
-        stage('Push Docker Image') {
+        
+        stage('Deploy to Staging') {
             steps {
-                // Use the withCredentials block to securely use the Docker Hub credentials
-                withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, 
-                                                   usernameVariable: 'DOCKERHUB_USER', 
-                                                   passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                    sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USER} --password-stdin"
-                    
-                    // Push the build number tag
-                    sh "docker push ${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
-                    
-                    // Push the 'latest' tag
-                    sh "docker push ${DOCKER_IMAGE_NAME}:latest"
-                    
-                    sh "docker logout"
-                }
+                // Requires configuring SSH keys or a dedicated deployment tool
+                // sh 'scp target/app.jar user@staging:/var/app/'
+                sh 'echo "Step 4: Deployment Completed"'
             }
+        }
+    }
+    
+    post {
+        failure {
+            echo 'Pipeline FAILED! Contact the team.'
+            // mail to: 'devs@example.com', subject: 'Build FAILED'
+        }
+        success {
+            echo 'Pipeline SUCCESSFUL! Ready for manual QA.'
         }
     }
 }
